@@ -1,0 +1,37 @@
+#obtención de precios para benchmark elektra
+
+#obtengo la información en bruto--------------------------------------------------------------------------------
+
+download.file('http://elektra.com.mx/Departments?fldc=11&dc=110108','prueba.txt')
+archivo<-'prueba.txt'
+texto<-readChar(archivo,file.info(archivo)$size)
+
+
+
+#obtengo 2 vectores, uno con precios y uno con los nombres de los artículos-------------------------------------
+
+
+library(stringr)
+
+locacion<-str_locate_all(texto,'"ListPrice\\"')[[1]]
+d1<-str_sub(texto,locacion[,1],locacion[,2]+80)
+d2<-str_locate_all(d1,'":')
+
+
+precios<-articulos<-NULL
+for(i in 1:length(d1)){
+  temp<-str_sub(d1[i],
+          c(d2[[i]][1,1]+2,d2[[i]][2,2]+2),
+          c(d2[[i]][2,1]-7,8000)
+  )
+  precios[i]<-temp[1]
+  articulos[i]<-temp[2]
+}
+
+
+#creo un data frame con las variables de artículos y precios----------------------------------------------------
+
+
+elektra_precios<-as.data.frame(cbind(articulos,precios))
+elektra_precios$articulos<-str_trim(elektra_precios$articulos,"right")
+
