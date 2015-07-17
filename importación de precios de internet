@@ -2,36 +2,117 @@
 
 #obtengo la información en bruto--------------------------------------------------------------------------------
 
-download.file('http://elektra.com.mx/Departments?fldc=11&dc=110108','prueba.txt')
-archivo<-'prueba.txt'
-texto<-readChar(archivo,file.info(archivo)$size)
+download.file('http://elektra.com.mx/Departments?fldc=11&dc=1101','elektra_TV.txt')
+download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=1','coppel_TV_a.txt')
+download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=2','coppel_TV_b.txt')
 
 
+base_ekt<-'elektra_TV.txt'
+texto_ekt<-readChar(base_ekt,file.info(base_ekt)$size)
 
-#obtengo 2 vectores, uno con precios y uno con los nombres de los artículos-------------------------------------
-
+#obtengo 5 vectores, tres con precios, uno del sku y uno con los nombres de los artículos-------------------------------------
 
 library(stringr)
 
-locacion<-str_locate_all(texto,'"ListPrice\\"')[[1]]
-d1<-str_sub(texto,locacion[,1],locacion[,2]+80)
-d2<-str_locate_all(d1,'":')
+setwd("E:/Users/asolis/Documents/Estudios de Inteligencia/R Pruebas/Periodo 2015/Lectura de URL")
+getwd()
 
+locac_ekt<-str_locate_all(texto_ekt,'"ListPrice\\"')[[1]]
 
-precios<-articulos<-NULL
-for(i in 1:length(d1)){
-  temp<-str_sub(d1[i],
-          c(d2[[i]][1,1]+2,d2[[i]][2,2]+2),
-          c(d2[[i]][2,1]-7,8000)
+d1_ekt<-str_sub(texto_ekt,locac_ekt[,1],locac_ekt[,2]+380)
+
+d2_ekt<-str_locate_all(d1_ekt,'":')
+
+# obtiene la información de Elektra.com --------------------------------
+
+pr_ekt<-descr_ekt<-sku_ekt<-pr1_ekt<-pr2_ekt<-NULL
+for(i in 1:length(d1_ekt)){
+  temp_ekt<-str_sub(d1_ekt[i],
+                c(d2_ekt[[i]][1,1]+2,d2_ekt[[i]][2,2]+2),
+                c(d2_ekt[[i]][2,1]-7,d2_ekt[[i]][2,2]+80)
   )
-  precios[i]<-temp[1]
-  articulos[i]<-temp[2]
+  pr_ekt[i]<-temp_ekt[1]
+  descr_ekt[i]<-temp_ekt[2]
+  
+  temp2_ekt<-str_sub(d1_ekt[i],
+                c(d2_ekt[[i]][4,1]+2,d2_ekt[[i]][4,2]-2),
+                c(d2_ekt[[i]][5,1]-9,d2_ekt[[i]][5,2]-10)
+  )
+  pr1_ekt[i]<-temp2_ekt[1]
+  temp3_ekt<-str_sub(d1_ekt[i],
+                 c(d2_ekt[[i]][5,1]+2,d2_ekt[[i]][5,2]-2),
+                 c(d2_ekt[[i]][6,1]-9,d2_ekt[[i]][6,2]-10)
+  )
+  pr2_ekt[i]<-temp3_ekt[1]
+
+  temp4_ekt<-str_sub(d1_ekt[i],
+                 c(d2_ekt[[i]][8,1]+2,d2_ekt[[i]][8,2]-2),
+                 c(d2_ekt[[i]][9,1]-15,d2_ekt[[i]][9,2]-17)
+  )
+  sku_ekt[i]<-temp4_ekt[1]
+  
 }
 
+#creo un data frame con las variables de artículos y precios----------------------------------------------------
+
+elektra_precios<-as.data.frame(cbind(sku_ekt,descr_ekt,pr_ekt,pr1_ekt,pr2_ekt))
+elektra_precios$descr_ekt<-str_trim(elektra_precios$descr_ekt,"right")
+
+write.csv(elektra_precios,"Elektra_TV_precios.csv")
+
+
+# obtiene la información de Coppel.com --------------------------------
+
+base_coppel_a <- 'coppel_TV_a.txt'
+base_coppel_b <- 'coppel_TV_b.txt'
+
+texto_coppel<-readChar(base_coppel_a,file.info(base_coppel_a)$size)
+texto_coppel<-readChar(base_coppel_b,file.info(base_coppel_b)$size)
+
+locac_coppel<-str_locate_all(texto_coppel,'"circprecio\\"')[[1]]
+loca1_coppel<-str_locate_all(texto_coppel,'"mod_titulo\\"')[[1]]
+
+d1_coppel<-str_sub(texto_coppel,locac_coppel[,1], locac_coppel[,2]+600)
+d1a_coppel<-str_sub(texto_coppel,loca1_coppel[,1], loca1_coppel[,2]+1600)
+d1b_coppel<-str_sub(texto_coppel,loca1_coppel[,1], loca1_coppel[,2]+150)
+
+d2_coppel<-str_locate_all(d1_coppel,'">')
+d2a_coppel<-str_locate_all(d1a_coppel,'">')
+d2b_coppel<-str_locate_all(d1b_coppel,'/')
+
+abono_coppel<-descr_coppel<-sku_coppel<-pr1_coppel<-pr2_coppel<-NULL
+for(i in 1:length(d1a_coppel)){
+  temp_coppel<-str_sub(d1a_coppel[i],
+                       c(d2a_coppel[[i]][2,1]+2,d2a_coppel[[i]][2,2]+2),
+                       c(d2a_coppel[[i]][3,1]-73,d2a_coppel[[i]][3,2]-76)
+  )
+  descr_coppel[i]<-temp_coppel[1]
+
+  temp1_coppel<-str_sub(d1_coppel[i],
+                c(d2_coppel[[i]][1,1]+3,d2_coppel[[i]][1,2]+3),
+                c(d2_coppel[[i]][2,1]-37,d2_coppel[[i]][2,2]-38)
+  )
+  abono_coppel[i]<-temp1_coppel[1]
+
+  temp2_coppel<-str_sub(d1_coppel[i],
+                 c(d2_coppel[[i]][5,1]+3,d2_coppel[[i]][5,2]+3),
+                 c(d2_coppel[[i]][6,1]-85,d2_coppel[[i]][6,2]-87)
+  )
+  pr1_coppel[i]<-temp2_coppel[1]
+
+  temp4_coppel<-str_sub(d1b_coppel[i],
+                 c(d2b_coppel[[i]][2,1]+1,d2b_coppel[[i]][2,2]+1),
+                 c(d2b_coppel[[i]][3,1]-1,d2b_coppel[[i]][3,2]-1)
+                 )
+  sku_coppel[i]<-temp4_coppel[1]
+  
+}
 
 #creo un data frame con las variables de artículos y precios----------------------------------------------------
 
 
-elektra_precios<-as.data.frame(cbind(articulos,precios))
-elektra_precios$articulos<-str_trim(elektra_precios$articulos,"right")
+coppel_precios<-as.data.frame(cbind(sku_coppel,descr_coppel,pr1_coppel,abono_coppel))
+coppel_precios$descr_coppel<-str_trim(coppel_precios$descr_coppel,"right")
+
+write.csv(coppel_precios,"Coppel_TV_precios_b.csv")
 
