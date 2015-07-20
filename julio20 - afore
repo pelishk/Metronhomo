@@ -1,0 +1,35 @@
+
+#desde aqui--------------------------------------------------------------------------------
+
+bn<-bafore[bafore$Nivel!='AB'&bafore$Nivel!='E',]
+bn$Nivel<-droplevels(bn$Nivel)
+bn$Nivel<-factor(bn$Nivel,order=T,levels=c('D','D+','C-','C','C+'))
+
+
+
+
+
+
+  p1<-ggplot(bn,aes(x=P5,colour=Nivel))+
+  geom_density()
+
+
+
+  p2<-ggplot(bn,aes(x=P5,fill=Nivel))+
+  geom_histogram(colour='gray',binwidth=1)+
+  facet_grid(Nivel~.)+
+  theme(legend.position='none')+
+  ggtitle('distribución de casos')
+
+
+
+
+b2<-ddply(bn,.(Nivel),summarise,media=mean(P5,na.rm=T),sd=sd(P5,na.rm=T))
+
+p3<-ggplot(b2,aes(x=Nivel,y=media))+
+  geom_point(colour='grey50',size=14)+
+  geom_point(aes(colour=Nivel),size=10)+
+  ylim(7,10)+
+  ggtitle('Distribución por Nivel')+
+  ylab('Promedio')
+
