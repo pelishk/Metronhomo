@@ -3,9 +3,6 @@
 #obtengo la información en bruto--------------------------------------------------------------------------------
 
 download.file('http://elektra.com.mx/Departments?fldc=11&dc=1101','elektra_TV.txt')
-download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=1','coppel_TV_a.txt')
-download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=2','coppel_TV_b.txt')
-
 
 base_ekt<-'elektra_TV.txt'
 texto_ekt<-readChar(base_ekt,file.info(base_ekt)$size)
@@ -19,13 +16,13 @@ getwd()
 
 locac_ekt<-str_locate_all(texto_ekt,'"ListPrice\\"')[[1]]
 
-d1_ekt<-str_sub(texto_ekt,locac_ekt[,1],locac_ekt[,2]+380)
+d1_ekt<-str_sub(texto_ekt,locac_ekt[,1],locac_ekt[,2]+750)
 
 d2_ekt<-str_locate_all(d1_ekt,'":')
 
 # obtiene la información de Elektra.com --------------------------------
 
-pr_ekt<-descr_ekt<-sku_ekt<-pr1_ekt<-pr2_ekt<-NULL
+pr_ekt<-descr_ekt<-sku_ekt<-pr1_ekt<-pr2_ekt<-marca_ekt<-NULL
 for(i in 1:length(d1_ekt)){
   temp_ekt<-str_sub(d1_ekt[i],
                 c(d2_ekt[[i]][1,1]+2,d2_ekt[[i]][2,2]+2),
@@ -50,24 +47,41 @@ for(i in 1:length(d1_ekt)){
                  c(d2_ekt[[i]][9,1]-15,d2_ekt[[i]][9,2]-17)
   )
   sku_ekt[i]<-temp4_ekt[1]
+
+  temp5_ekt<-str_sub(d1_ekt[i],
+                     c(d2_ekt[[i]][21,1]+3,d2_ekt[[i]][21,2]-2),
+                     c(d2_ekt[[i]][22,1]-20,d2_ekt[[i]][22,2]-17)
+  )
+  marca_ekt[i]<-temp5_ekt[1]
   
 }
 
-#creo un data frame con las variables de artículos y precios----------------------------------------------------
 
-elektra_precios<-as.data.frame(cbind(sku_ekt,descr_ekt,pr_ekt,pr1_ekt,pr2_ekt))
+#creo un data frame con las variables de artículos y precios de Elektra ----------------------------------------------------
+
+elektra_precios<-as.data.frame(cbind(sku_ekt,marca_ekt,descr_ekt,pr_ekt,pr1_ekt,pr2_ekt))
 elektra_precios$descr_ekt<-str_trim(elektra_precios$descr_ekt,"right")
+elektra_precios$marca_ekt<-str_trim(elektra_precios$marca_ekt,"right")
 
 write.csv(elektra_precios,"Elektra_TV_precios.csv")
 
 
 # obtiene la información de Coppel.com --------------------------------
 
+download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=1','coppel_TV_a.txt')
+download.file('http://www.coppel.com/electronica/pantallas/?numciudad=84&page=2','coppel_TV_b.txt')
+
 base_coppel_a <- 'coppel_TV_a.txt'
 base_coppel_b <- 'coppel_TV_b.txt'
 
-texto_coppel<-readChar(base_coppel_a,file.info(base_coppel_a)$size)
-texto_coppel<-readChar(base_coppel_b,file.info(base_coppel_b)$size)
+texto_coppel_a<-readChar(base_coppel_a,file.info(base_coppel_a)$size)
+texto_coppel_b<-readChar(base_coppel_b,file.info(base_coppel_b)$size)
+
+cat(texto_coppel_a, texto_coppel_b, file = 'texto_coppel.txt')
+
+base_coppel<-'texto_coppel.txt'
+
+texto_coppel<-readChar(base_coppel,file.info(base_coppel)$size)
 
 locac_coppel<-str_locate_all(texto_coppel,'"circprecio\\"')[[1]]
 loca1_coppel<-str_locate_all(texto_coppel,'"mod_titulo\\"')[[1]]
@@ -75,6 +89,7 @@ loca1_coppel<-str_locate_all(texto_coppel,'"mod_titulo\\"')[[1]]
 d1_coppel<-str_sub(texto_coppel,locac_coppel[,1], locac_coppel[,2]+600)
 d1a_coppel<-str_sub(texto_coppel,loca1_coppel[,1], loca1_coppel[,2]+1600)
 d1b_coppel<-str_sub(texto_coppel,loca1_coppel[,1], loca1_coppel[,2]+150)
+
 
 d2_coppel<-str_locate_all(d1_coppel,'">')
 d2a_coppel<-str_locate_all(d1a_coppel,'">')
@@ -84,19 +99,19 @@ abono_coppel<-descr_coppel<-sku_coppel<-pr1_coppel<-pr2_coppel<-NULL
 for(i in 1:length(d1a_coppel)){
   temp_coppel<-str_sub(d1a_coppel[i],
                        c(d2a_coppel[[i]][2,1]+2,d2a_coppel[[i]][2,2]+2),
-                       c(d2a_coppel[[i]][3,1]-73,d2a_coppel[[i]][3,2]-76)
+                       c(d2a_coppel[[i]][3,1]-75,d2a_coppel[[i]][3,2]-74)
   )
   descr_coppel[i]<-temp_coppel[1]
 
   temp1_coppel<-str_sub(d1_coppel[i],
                 c(d2_coppel[[i]][1,1]+3,d2_coppel[[i]][1,2]+3),
-                c(d2_coppel[[i]][2,1]-37,d2_coppel[[i]][2,2]-38)
+                c(d2_coppel[[i]][2,1]-38,d2_coppel[[i]][2,2]-35)
   )
   abono_coppel[i]<-temp1_coppel[1]
 
   temp2_coppel<-str_sub(d1_coppel[i],
                  c(d2_coppel[[i]][5,1]+3,d2_coppel[[i]][5,2]+3),
-                 c(d2_coppel[[i]][6,1]-85,d2_coppel[[i]][6,2]-87)
+                 c(d2_coppel[[i]][6,1]-88,d2_coppel[[i]][6,2]-87)
   )
   pr1_coppel[i]<-temp2_coppel[1]
 
@@ -108,11 +123,230 @@ for(i in 1:length(d1a_coppel)){
   
 }
 
-#creo un data frame con las variables de artículos y precios----------------------------------------------------
+#creo un data frame con las variables de artículos y precios de Coppel ----------------------------------------------------
 
 
 coppel_precios<-as.data.frame(cbind(sku_coppel,descr_coppel,pr1_coppel,abono_coppel))
 coppel_precios$descr_coppel<-str_trim(coppel_precios$descr_coppel,"right")
 
-write.csv(coppel_precios,"Coppel_TV_precios_b.csv")
+write.csv(coppel_precios,"Coppel_TV_precios.csv")
 
+
+# obtiene la información de walmart.com --------------------------------
+
+
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/29-Pulgadas-o-Menos','walmart_tv_a.txt')
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/30-a-39-Pulgadas','walmart_tv_b.txt')
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/40-a-49-Pulgadas','walmart_tv_c.txt')
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/50-a-59-Pulgadas','walmart_tv_d.txt')
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/60-a-69-Pulgadas','walmart_tv_e.txt')
+download.file('http://www.walmart.com.mx/TV-y-Video/Pantallas/70-Pulgadas-en-Adelante','walmart_tv_f.txt')
+
+
+base_wal_a<-'walmart_tv_a.txt'
+base_wal_b<-'walmart_tv_b.txt'
+base_wal_c<-'walmart_tv_c.txt'
+base_wal_d<-'walmart_tv_d.txt'
+base_wal_e<-'walmart_tv_e.txt'
+base_wal_f<-'walmart_tv_f.txt'
+
+texto_wal_a<-readChar(base_wal_a,file.info(base_wal_a)$size)
+texto_wal_b<-readChar(base_wal_b,file.info(base_wal_b)$size)
+texto_wal_c<-readChar(base_wal_c,file.info(base_wal_c)$size)
+texto_wal_d<-readChar(base_wal_d,file.info(base_wal_d)$size)
+texto_wal_e<-readChar(base_wal_e,file.info(base_wal_e)$size)
+texto_wal_f<-readChar(base_wal_f,file.info(base_wal_f)$size)
+
+cat(texto_wal_a, texto_wal_b, texto_wal_c, texto_wal_d, texto_wal_e, texto_wal_f, file = 'texto_wal.txt')
+
+base_wal<-'texto_wal.txt'
+
+texto_wal<-readChar(base_wal,file.info(base_wal)$size)
+
+locac_wal<-str_locate_all(texto_wal,'"Cantidad\\"')[[1]]
+
+d1_wal<-str_sub(texto_wal,locac_wal[,1],locac_wal[,2]+1050)
+
+write.csv(d1_wal,"WalMart_prueba.csv")
+
+d2_wal<-str_locate_all(d1_wal,'":')
+
+pr_wal<-descr_wal<-sku_wal<-pr1_wal<-pr2_wal<-sublin_wal<-upc_wal<-marca_wal<-NULL
+for(i in 1:length(d1_wal)){
+  temp_wal<-str_sub(d1_wal[i],
+                    c(d2_wal[[i]][2,1]+2,d2_wal[[i]][2,2]+10),
+                    c(d2_wal[[i]][3,1]-13,d2_wal[[i]][2,2]-11)
+  )
+  descr_wal[i]<-temp_wal[1]
+  
+  temp2_wal<-str_sub(d1_wal[i],
+                     c(d2_wal[[i]][5,1]+2,d2_wal[[i]][5,2]-2),
+                     c(d2_wal[[i]][6,1]-7,d2_wal[[i]][6,2]-7)
+  )
+  sublin_wal[i]<-temp2_wal[1]
+  
+  temp3_wal<-str_sub(d1_wal[i],
+                     c(d2_wal[[i]][6,1]+4,d2_wal[[i]][6,2]+4),
+                     c(d2_wal[[i]][7,1]-16,d2_wal[[i]][7,2]-12)
+  )
+  pr1_wal[i]<-temp3_wal[1]
+  
+  temp4_wal<-str_sub(d1_wal[i],
+                     c(d2_wal[[i]][9,1]+3,d2_wal[[i]][9,2]+3),
+                     c(d2_wal[[i]][10,1]-6,d2_wal[[i]][10,2]-3)
+  )
+  sku_wal[i]<-temp4_wal[1]
+  
+  temp5_wal<-str_sub(d1_wal[i],
+                     c(d2_wal[[i]][10,1]+3,d2_wal[[i]][10,2]+3),
+                     c(d2_wal[[i]][11,1]-13,d2_wal[[i]][11,2]-11)
+  )
+  upc_wal[i]<-temp5_wal[1]
+
+  temp6_wal<-str_sub(d1_wal[i],
+                     c(d2_wal[[i]][12,1]+3,d2_wal[[i]][12,2]+3),
+                     c(d2_wal[[i]][13,1]-16,d2_wal[[i]][13,2]-11)
+  )
+  marca_wal[i]<-temp6_wal[1]
+}
+
+#creo un data frame con las variables de artículos y precios Walmart ----------------------------------------------------
+
+walmart_precios<-as.data.frame(cbind(sku_wal,marca_wal,descr_wal,sublin_wal,pr1_wal,upc_wal))
+walmart_precios$descr_wal<-str_trim(walmart_precios$descr_wal,"right")
+
+write.csv(walmart_precios,"WalMart_TV_precios.csv")
+
+# obtiene la información de Famsa.com --------------------------------
+
+download.file('http://www.famsa.com/electronica/pantallas/led-','famsa_tv_a.txt')
+download.file('http://www.famsa.com/electronica/pantallas/plasma-','famsa_tv_b.txt')
+
+base_famsa_a <- 'famsa_tv_a.txt'
+base_famsa_b <- 'famsa_tv_b.txt'
+
+texto_famsa_a<-readChar(base_famsa_a,file.info(base_famsa_a)$size)
+texto_famsa_b<-readChar(base_famsa_b,file.info(base_famsa_b)$size)
+
+cat(texto_famsa_a, texto_famsa_b, file = 'texto_famsa.txt')
+
+base_famsa<-'texto_famsa.txt'
+
+texto_famsa<-readChar(base_famsa,file.info(base_famsa)$size)
+
+locac_famsa<-str_locate_all(texto_famsa,'"idProducto\\"')[[1]]
+
+d1_famsa<-str_sub(texto_famsa,locac_famsa[,1], locac_famsa[,2]+700)
+
+write.csv(d1_famsa,"famsa_prueba.csv")
+d2_famsa<-str_locate_all(d1_famsa,'":')
+
+id_famsa<-descr_famsa<-sku_famsa<-pr1_famsa<-pr2_famsa<-marca_famsa<-NULL
+for(i in 1:length(d1_famsa)){
+  temp_famsa<-str_sub(d1_famsa[i],
+                       c(d2_famsa[[i]][1,1]+3,d2_famsa[[i]][1,2]+3),
+                       c(d2_famsa[[i]][2,1]-12,d2_famsa[[i]][2,2]-10)
+  )
+  id_famsa[i]<-temp_famsa[1]
+
+  temp1_famsa<-str_sub(d1_famsa[i],
+                        c(d2_famsa[[i]][3,1]+3,d2_famsa[[i]][3,2]+3),
+                        c(d2_famsa[[i]][4,1]-10,d2_famsa[[i]][4,2]-5)
+  )
+  sku_famsa[i]<-temp1_famsa[1]
+
+  temp2_famsa<-str_sub(d1_famsa[i],
+                        c(d2_famsa[[i]][4,1]+3,d2_famsa[[i]][4,2]+3),
+                        c(d2_famsa[[i]][5,1]-10,d2_famsa[[i]][5,2]-5)
+  )
+  descr_famsa[i]<-temp2_famsa[1]
+
+  temp3_famsa<-str_sub(d1_famsa[i],
+                       c(d2_famsa[[i]][5,1]+3,d2_famsa[[i]][5,2]+3),
+                       c(d2_famsa[[i]][6,1]-17,d2_famsa[[i]][6,2]-12)
+  )
+  pr1_famsa[i]<-temp3_famsa[1]
+
+  temp4_famsa<-str_sub(d1_famsa[i],
+                        c(d2_famsa[[i]][6,1]+3,d2_famsa[[i]][6,2]+3),
+                        c(d2_famsa[[i]][7,1]-15,d2_famsa[[i]][7,2]-12)
+  )
+  pr2_famsa[i]<-temp4_famsa[1]
+
+  temp5_famsa<-str_sub(d1_famsa[i],
+                       c(d2_famsa[[i]][9,1]+3,d2_famsa[[i]][9,2]+3),
+                       c(d2_famsa[[i]][10,1]-23,d2_famsa[[i]][10,2]-12)
+  )
+  marca_famsa[i]<-temp5_famsa[1]
+  
+}
+
+
+#creo un data frame con las variables de artículos y precios de Famsa ----------------------------------------------------
+
+
+famsa_precios<-as.data.frame(cbind(sku_famsa,marca_famsa,descr_famsa,pr1_famsa,pr2_famsa))
+famsa_precios$descr_famsa<-str_trim(famsa_precios$descr_famsa,"right")
+
+write.csv(famsa_precios,"famsa_tv_precios.csv")
+
+
+
+# obtiene la información de Best Buy.com --------------------------------
+
+download.file('http://www.bestbuy.com.mx/productos/tv-y-video/pantallas.html','bestbuy_tv.txt')
+
+
+base_bestbuy <- 'bestbuy_tv.txt'
+
+texto_bestbuy<-readChar(base_bestbuy,file.info(base_bestbuy)$size)
+write.csv(texto_bestbuy,"bestbuy_prueba2.csv")
+locac_bestbuy<-str_locate_all(texto_bestbuy,'"position:relative;"')[[1]]
+locac_a_bestbuy<-str_locate_all(texto_bestbuy,'"price-box"')[[1]]
+
+d1_bestbuy<-str_sub(texto_bestbuy,locac_bestbuy[,1], locac_bestbuy[,2]+2500)
+d1a_bestbuy<-str_sub(texto_bestbuy,locac_a_bestbuy[,1], locac_a_bestbuy[,2]+600)
+
+d2_bestbuy<-str_locate_all(d1_bestbuy,':')
+d2a_bestbuy<-str_locate_all(d1a_bestbuy,'">')
+
+
+id_bestbuy<-descr_bestbuy<-sku_bestbuy<-pr1_bestbuy<-pr2_bestbuy<-marca_bestbuy<-NULL
+for(i in 1:length(d1_bestbuy)){
+  temp_bestbuy<-str_sub(d1_bestbuy[i],
+                      c(d2_bestbuy[[i]][3,1]+3,d2_bestbuy[[i]][3,2]+3),
+                      c(d2_bestbuy[[i]][4,1]-12,d2_bestbuy[[i]][4,2]-5)
+  )
+  descr_bestbuy[i]<-temp_bestbuy[1]
+
+  temp1_bestbuy<-str_sub(d1_bestbuy[i],
+                       c(d2_bestbuy[[i]][4,1]+4,d2_bestbuy[[i]][4,2]+3),
+                       c(d2_bestbuy[[i]][5,1]-15,d2_bestbuy[[i]][5,2]-5)
+  )
+  sku_bestbuy[i]<-temp1_bestbuy[1]
+
+  temp2_bestbuy<-str_sub(d1_bestbuy[i],
+                       c(d2_bestbuy[[i]][5,1]+4,d2_bestbuy[[i]][5,2]+3),
+                       c(d2_bestbuy[[i]][6,1]-15,d2_bestbuy[[i]][6,2]-5)
+  )
+  pr1_bestbuy[i]<-temp2_bestbuy[1]
+
+  temp3_bestbuy<-str_sub(d1_bestbuy[i],
+                       c(d2_bestbuy[[i]][6,1]+4,d2_bestbuy[[i]][6,2]+3),
+                       c(d2_bestbuy[[i]][7,1]-18,d2_bestbuy[[i]][7,2]-12)
+  )
+  marca_bestbuy[i]<-temp3_bestbuy[1]
+  
+  temp4_bestbuy<-str_sub(d1a_bestbuy[i],
+                         c(d2a_bestbuy[[i]][4,1]+27,d2a_bestbuy[[i]][4,2]+15), 247)
+  pr2_bestbuy[i]<-temp4_bestbuy[1]
+  
+}
+
+#creo un data frame con las variables de artículos y precios de Best Buy ----------------------------------------------------
+
+
+bestbuy_precios<-as.data.frame(cbind(sku_bestbuy,marca_bestbuy,descr_bestbuy,pr1_bestbuy, pr2_bestbuy))
+bestbuy_precios$descr_bestbuy<-str_trim(bestbuy_precios$descr_bestbuy,"right")
+
+write.csv(bestbuy_precios,"bestbuy_tv_precios.csv")
