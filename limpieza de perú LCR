@@ -1,0 +1,172 @@
+setwd('E:/per˙')
+
+#importando la base------------------------------------------------------------
+
+clientes<-read.table(file='LCR.txt',
+                     sep="\t",
+                     header=T,
+                     quote='',
+                     comment.char='',
+                     fill=T,
+                     stringsAsFactors=F)
+
+
+summary(clientes)
+head(clientes)
+str(clientes[,1])
+#me doy cuenta de que en la primer variable hay algo raro
+
+#busco las observaciones problem·ticas-----------------------------------------------------------
+
+library(stringr)
+for(i in 1:nrow(clientes)){
+  if(str_length(clientes[i,1])>5){
+    cat(paste(i,'\n'))
+  }
+}
+
+
+#arreglo las observaciones problem·ticas---------------------------------------------------------------------
+
+clientes[1273162:1273172,]
+clientes[1273166,33:35]<-clientes[1273166,34:36]
+clientes[1273166,36]<-clientes[1273167,1]
+
+clientes[(1630133-5):(1630133+5),]
+clientes[1630132,28:35]<-clientes[1630132,29:36]
+clientes[1630132,36]<-clientes[1630133,1]
+
+clientes<-clientes[-c(1630133,1273167),]
+rownames(clientes)<-1:nrow(clientes)
+
+summary(clientes)
+
+
+#estructuraciÛn de la base
+
+names(clientes)<-c('Tienda_Compra','Pais','Canal','Tienda_Registro','Folio','Cap_Semanal','Cap_Disp','Cap_Total',
+                  'Status','LN','Neg_Localizacion','Neg_RMD','Neg_Legal','Neg_DC','Neg_PCJ','Id_Viejo','Ing_Mes',
+                  'Ing_Cygmes','Ing_mesnocomp','Ing_Deumes','Depend','Antdom','Tipoviv','Nombre','Paterno','Materno',
+                  'Dir_Calle','Dir_Ext','Dir_Int','Dir_Col','Dir_CP','Tel','Sexo','Edocivil','Fec_Nac','Fec_Alt')
+
+head(clientes)
+
+
+#defino los tipo de variable
+
+vnum<-c(1:8,16:22)
+vcat<-c(9:15,23,32,33)
+vfec<-c(35,36)
+
+#summary de las variables numÈricas
+
+lapply(c(1:8,16:22),function(c) summary(as.numeric(clientes[,c])))
+
+#hay algo raro en Cap_Total, por quÈ son negativos?
+
+length(which(clientes$Cap_Total<0))
+prop.table(table(clientes[which(clientes$Cap_Total<0),9]))
+
+#SÛlo vamos a perder 2.4% de los datos al quitar a los que tienen Cap_Total<0 y Status =1
+
+clientes2<-clientes[(clientes$Cap_Total>=0 | clientes$Status!='1'),]
+nrow(clientes2)/nrow(clientes)
+
+clientes<-clientes2;rm(clientes2)
+
+#97.5% de los datos siguen siendo utilizables, todo cool
+
+
+lapply(c(1:8),function(c) summary(as.numeric(clientes[,c])))
+
+#seguimos con las siguientes que son factores
+
+lapply(c(9:15),function(c) summary(as.factor(clientes[,c])))
+names(clientes)[9:15]
+#etiquetamos
+
+clientes$Status<-as.factor(clientes$Status)
+levels(clientes$Status)<-c('liberada','bloqueada','cancelada')
+
+for(i in 10:15){
+  clientes[,i]<-as.factor(clientes[,i])
+  levels(clientes[,i])<-c('no','si')
+}
+
+
+lapply(c(16:22),function(c) summary(as.numeric(clientes[,c])))
+names(clientes)[16:22]
+
+length(which(clientes$Ing_Mes<0))
+
+
+clientes2<-clientes[clientes$Ing_Mes>=0,]
+nrow(clientes2)/nrow(clientes)
+
+clientes<-clientes2;rm(clientes2)
+
+#checkpoint
+load("C:/Users/Pelishka/Desktop/limpieza de per˙/limpieza per˙ hasta ing_mes.RData")
+
+sum(which(clientes[,16]=='NULL')==which(clientes[,19]=='NULL'))
+
+clientes2<-clientes[-which(clientes[,16]=='NULL'),]
+
+nrow(clientes)-nrow(clientes2)
+
+
+
+clientes<-clientes2;rm(clientes2)
+
+quantile(as.numeric(clientes$Antdom),seq(0,1,.0001))
+
+clientes2<-clientes[as.numeric(clientes$Antdom)<61,]
+
+clientes<-clientes2;rm(clientes2)
+
+
+lapply(c(23,33,34),function(c) summary(as.factor(clientes[,c])))
+names(clientes)[c(23,33,34)]
+
+
+clientes2<-clientes[clientes$Sexo %in% c('1','2','F','M'),]
+clientes<-clientes2;rm(clientes2)
+
+clientes$Sexo<-str_replace(clientes$Sexo,"1","M")
+clientes$Sexo<-str_replace(clientes$Sexo,"2","F")
+clientes$Sexo<-as.factor(clientes$Sexo)
+
+
+clientes2<-clientes[clientes$Tipoviv!='7',]
+clientes<-clientes2;rm(clientes2)
+
+clientes$Tipoviv<-as.factor(clientes$Tipoviv)
+
+levels(clientes$Tipoviv)<-c('error','propia','familiares','huesped','otro','pagando','rentando')
+
+
+clientes$Edocivil<-as.factor(clientes$Edocivil)
+
+levels(clientes$Edocivil)<-c('error','soltero','casado','divorciado','union libre','viudo','convivencia')
+
+for(i in c(16:22)){
+  clientes[,i]<-as.numeric(clientes[,i])
+}
+
+
+#checkpoint
+load("C:/Users/Pelishka/Desktop/limpieza de per˙/limpieza per˙ hasta fecha.RData")
+
+
+library(lubridate)
+
+clientes[,35]<-ymd(str_sub(clientes[,35],1,10))
+clientes[,36]<-ymd(str_sub(clientes[,36],1,10))
+
+rm(list=setdiff(ls(),'clientes'))
+
+saveRDS(clientes,'clientes limpia.RDS')
+
+save.image("E:/per˙/bla.RData")
+
+
