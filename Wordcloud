@@ -1,0 +1,42 @@
+#Wordcloud P1 ---------------------------------------
+library(tm)
+library(wordcloud)
+library(SnowballC)
+# Wordcloud p1 concepto1-----------------------------------------------------------
+
+nombre=('ejemplo.png')
+palabras_prohibidas=c('ejemplo1','ejemplo2')
+base=ejemplo
+
+nubes(nombre,palabras_prohibidas,base)
+
+nubes<-function(nombre,palabras_prohibidas,base){
+  #genera vector de la variable
+  p<-VCorpus(VectorSource(na.omit(base)))
+  inspect(p)
+  
+  #Elimina espacios
+  p<-tm_map(p,stripWhitespace)
+  #minúsculas
+  p<-tm_map(p,content_transformer(tolower))
+  #signos de puntuación
+  p<-tm_map(p,removePunctuation)
+  #numeros
+  p<-tm_map(p,removeNumbers)
+  #elimina palabras no requeridas
+  p<-tm_map(p,removeWords,palabras_prohibidas)
+  #genera matriz de palabras
+  a<-TermDocumentMatrix(p)
+  b<-rowSums(as.matrix(a))
+  names(b)<-rownames(as.matrix(a))
+  b<-sort(b,decreasing=T)
+  #exporta como imagen png
+  png(nombre,width=50,height=30,units="cm",res=200)
+  
+  nombre<-wordcloud(names(b),b, min.freq=1,scale=c(8,.6),max.word=200,
+                     random.order=FALSE, rot.per=0.15, 
+                     colors=brewer.pal(8, "Dark2"))
+  dev.off()
+  
+}
+
